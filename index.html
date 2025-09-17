@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>ブルアカBGMランキングメーカー</title>
+<style>
+  body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #a3d8ff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 32px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #fff;
+    font-size: 1.8rem;
+    margin-bottom: 24px;
+  }
+
+  .wrap {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: nowrap;
+    max-width: 1100px;
+    width: 100%;
+  }
+
+  .panel {
+    width: 480px;
+    flex: none;
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  #rankingPanel .list {
+    background: #fff;
+    border-radius: 12px;
+    padding: 6px;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    color: #0077cc;
+  }
+
+  .searchContainer {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  #searchInput {
+    flex: 1;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #cce7ff;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+
+  #clearSearchBtn {
+    border: none;
+    border-radius: 8px;
+    background: #ff6fa5;
+    color: #fff;
+    font-weight: 600;
+    padding: 0 12px;
+    cursor: pointer;
+  }
+
+  #clearSearchBtn:hover {
+    background: #e0558b;
+  }
+
+  .list { padding: 6px; }
+
+  #bgmList {
+    max-height: 520px;
+    overflow-y: auto;
+  }
+
+  .track {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: #fefefe;
+    border: 1px solid #cce7ff;
+  }
+
+  .track strong {
+    flex: 1;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  button.addBtn, button.removeBtn {
+    background: #0077cc;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 6px 12px;
+    border: none;
+    cursor: pointer;
+  }
+
+  button.addBtn:hover, button.removeBtn:hover {
+    background: #005fa3;
+  }
+
+  .selectedItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    background: #f0f9ff;
+    border: 1px solid #a3d8ff;
+  }
+
+  .selectedItem strong {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  .rankLabel {
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #0077cc;
+    color: #fff;
+    min-width: 45px;
+    text-align: center;
+  }
+
+  .controls {
+    margin-top: 16px;
+    text-align: center;
+    padding: 10px;
+  }
+
+  #screenshotBtn {
+    background: #ff6fa5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  #screenshotBtn:hover {
+    background: #e0558b;
+  }
+
+  @media (max-width: 600px) {
+    .wrap {
+      flex-direction: column;
+      align-items: center;
+    }
+    .panel {
+      width: 90%;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="mainContainer">
+    <h1>ブルアカBGMランキングメーカー</h1>
+    <div class="wrap">
+      <div class="panel">
+        <h2>BGM一覧</h2>
+        <div class="searchContainer">
+          <input type="text" id="searchInput" placeholder="曲名で検索…">
+          <button id="clearSearchBtn">×</button>
+        </div>
+        <div class="list" id="bgmList"></div>
+      </div>
+
+      <div class="panel" id="rankingPanel">
+        <h2>ブルアカBGMランキング</h2>
+        <div class="list selectedList" id="selectedList"></div>
+        <div class="controls">
+          <button id="screenshotBtn">スクリーンショット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+const bgmListData = [
+  {id: "bgm_1", title: "!⸮ WAS IT A CAT I SAW ?!"},
+  {id: "bgm_2", title: "0k@eri"},
+  {id: "bgm_3", title: "Accelerator"},
+  {id: "bgm_4", title: "Achromatic Prism"},
+  {id: "bgm_5", title: "Action 68"},
+  {id: "bgm_6", title: "After School Dessert"},
+  {id: "bgm_7", title: "After the Beep"},
+  {id: "bgm_8", title: "Agnus Dei"},
+  {id: "bgm_9", title: "Aira"},
+  {id: "bgm_10", title: "Alert"},
+  {id: "bgm_11", title: "Alert Hard Arrange"},
+  {id: "bgm_12", title: "Alkaline Tears"},
+  {id: "bgm_13", title: "Aoharu"},
+  {id: "bgm_14", title: "Aoharu Band Arrange"},
+  {id: "bgm_15", title: "ARES"},
+  {id: "bgm_16", title: "Ark in the Blood Sky"},
+  {id: "bgm_17", title: "Barrier"},
+  {id: "bgm_18", title: "Bishoujo tachi no Cliché"},
+  {id: "bgm_19", title: "Black Suit"},
+  {id: "bgm_20", title: "Blood Stained Faith"},
+  {id: "bgm_21", title: "Blooming moon"},
+  {id: "bgm_22", title: "Blue New Battle"},
+  {id: "bgm_23", title: "Blue New World"},
+  {id: "bgm_24", title: "Blue new year"},
+  {id: "bgm_25", title: "Bluemark Canvas"},
+  {id: "bgm_26", title: "Breaking Silence"},
+  {id: "bgm_27", title: "Bunny Bunny Carrot Carrot"},
+  {id: "bgm_28", title: "Burning Love"},
+  {id: "bgm_29", title: "Candy Step"},
+  {id: "bgm_30", title: "Cherry Berry Merry"},
+  {id: "bgm_31", title: "Chilling Out"},
+  {id: "bgm_32", title: "Clear Morning"},
+  {id: "bgm_33", title: "Codex of Omen"},
+  {id: "bgm_34", title: "Coffee Cats"},
+  {id: "bgm_35", title: "Colorful Beach"},
+  {id: "bgm_36", title: "Colorful Mess"},
+  {id: "bgm_37", title: "Connected Sky"},
+  {id: "bgm_38", title: "Constant Moderato"},
+  {id: "bgm_39", title: "Constant Moderato Piano Arrange"},
+  {id: "bgm_40", title: "Container Corner"},
+  {id: "bgm_41", title: "Cotton Candy Island"},
+  {id: "bgm_42", title: "CrossFire"},
+  {id: "bgm_43", title: "CrossFire Hard Arrange"},
+  {id: "bgm_44", title: "Crucial Issue"},
+  {id: "bgm_45", title: "Daily Routine 247"},
+  {id: "bgm_46", title: "DAN! DAN!! INVADER!!!"},
+  {id: "bgm_47", title: "Dancing Falsehood"},
+  {id: "bgm_48", title: "Dark Shadows"},
+  {id: "bgm_49", title: "Dazzle Everyday"},
+  {id: "bgm_50", title: "Defective Pixel"},
+  {id: "bgm_51", title: "Denshi Toujou!"},
+  {id: "bgm_52", title: "Dive into Summer"},
+  {id: "bgm_53", title: "Dolce Biblioteca"},
+  {id: "bgm_54", title: "Dreaming Trip"},
+  {id: "bgm_55", title: "Encroached Sky"},
+  {id: "bgm_56", title: "Endless Carnival"},
+  {id: "bgm_57", title: "Expo Festa"},
+  {id: "bgm_58", title: "F1ghtback"},
+  {id: "bgm_59", title: "Fade Out"},
+  {id: "bgm_60", title: "Fall into the rabbit hole"},
+  {id: "bgm_61", title: "Fearful Utopia"},
+  {id: "bgm_62", title: "FEEEEVER TIME"},
+  {id: "bgm_63", title: "Fevertime"},
+  {id: "bgm_64", title: "Final Destination of Ark"},
+  {id: "bgm_65", title: "Flip Flap Festival!"},
+  {id: "bgm_66", title: "Foolish Days"},
+  {id: "bgm_67", title: "Formless Dream"},
+  {id: "bgm_68", title: "Fruitful Blossom"},
+  {id: "bgm_69", title: "Funky Road"},
+  {id: "bgm_70", title: "Fury of Set"},
+  {id: "bgm_71", title: "Future Bossa"},
+  {id: "bgm_72", title: "Future Lab"},
+  {id: "bgm_73", title: "Gestalt Angst"},
+  {id: "bgm_74", title: "Get Over the World"},
+  {id: "bgm_75", title: "Getsurin"},
+  {id: "bgm_76", title: "GGF"},
+  {id: "bgm_77", title: "GIVE ME CHOCO♡"},
+  {id: "bgm_78", title: "Glitch Street"},
+  {id: "bgm_79", title: "Goal Wo Nerae!"},
+  {id: "bgm_80", title: "Golden Shangri-la"},
+  {id: "bgm_81", title: "Gregorius | Symphony"},
+  {id: "bgm_82", title: "Guruguru Usagi"},
+  {id: "bgm_83", title: "Hand in Hand, Heart in Heart"},
+  {id: "bgm_84", title: "Han-nari"},
+  {id: "bgm_85", title: "Hello to Halo"},
+  {id: "bgm_86", title: "Hidden Treasure"},
+  {id: "bgm_87", title: "Hifumi Daisuki"},
+  {id: "bgm_88", title: "HIGH5LANDER"},
+  {id: "bgm_89", title: "HIGH-VELOCITY"},
+  {id: "bgm_90", title: "Hinagesi"},
+  {id: "bgm_91", title: "Honey Jam"},
+  {id: "bgm_92", title: "Hue"},
+  {id: "bgm_93", title: "Hunter Bible"},
+  {id: "bgm_94", title: "Illuminated Night"},
+  {id: "bgm_95", title: "Illuminated Night Hard Arrange"},
+  {id: "bgm_96", title: "Indoor Outdoor"},
+  {id: "bgm_97", title: "Interface"},
+  {id: "bgm_98", title: "Interface Hard Arrange"},
+  {id: "bgm_99", title: "InuTime"},
+  {id: "bgm_100", title: "Irasshaimase"},
+  {id: "bgm_101", title: "IROHANI HOP"},
+  {id: "bgm_102", title: "JACKPOT 777"},
+  {id: "bgm_103", title: "Kaiten Hurricane!!!"},
+  {id: "bgm_104", title: "Kaiten Screw!!!"},
+  {id: "bgm_105", title: "Kaphar"},
+  {id: "bgm_106", title: "KARAKURhythm"},
+  {id: "bgm_107", title: "KIRISAME"},
+  {id: "bgm_108", title: "Kitsunebi"},
+  {id: "bgm_109", title: "Koi is Love"},
+  {id: "bgm_110", title: "Kyrie Eleison"},
+  {id: "bgm_111", title: "LA LA RUN!"},
+  {id: "bgm_112", title: "Laboratorium Occultum"},
+  {id: "bgm_113", title: "Lemonade Diary"},
+  {id: "bgm_114", title: "Let me go Seaside"},
+  {id: "bgm_115", title: "Let me think about it"},
+  {id: "bgm_116", title: "Library of Omen"},
+  {id: "bgm_117", title: "Love Story"},
+  {id: "bgm_118", title: "Lovely Picnic"},
+  {id: "bgm_119", title: "Luminous Memory"},
+  {id: "bgm_120", title: "Luxury Cool"},
+  {id: "bgm_121", title: "Mechanical JUNGLE"},
+  {id: "bgm_122", title: "Mechanical JUNGLE Hard Arrange"},
+  {id: "bgm_123", title: "merry blue"},
+  {id: "bgm_124", title: "Midnight Trip"},
+  {id: "bgm_125", title: "Midsummer cat"},
+  {id: "bgm_126", title: "Miracle"},
+  {id: "bgm_127", title: "Mischievous Step"},
+  {id: "bgm_128", title: "Mission Possible"},
+  {id: "bgm_129", title: "Moment"},
+  {id: "bgm_130", title: "Morose Dreamer"},
+  {id: "bgm_131", title: "MX Adventure"},
+  {id: "bgm_132", title: "Na Na Natsu!"},
+  {id: "bgm_133", title: "Neo City Dive"},
+  {id: "bgm_134", title: "NERINERI CHALLENGE"},
+  {id: "bgm_135", title: "Nesno wons"},
+  {id: "bgm_136", title: "Nichirin"},
+  {id: "bgm_137", title: "Noble Hallway"},
+  {id: "bgm_138", title: "NRG FielD"},
+  {id: "bgm_139", title: "OHAYOU Daily morning"},
+  {id: "bgm_140", title: "Operation☆DOTABATA!"},
+  {id: "bgm_141", title: "OperationD"},
+  {id: "bgm_142", title: "Oriental Bounce"},
+  {id: "bgm_143", title: "Oriental Drop"},
+  {id: "bgm_144", title: "OTKPARA!"},
+  {id: "bgm_145", title: "Oukaranman"},
+  {id: "bgm_146", title: "Our New Story"},
+  {id: "bgm_147", title: "Our Oath"},
+  {id: "bgm_148", title: "Out of Control"},
+  {id: "bgm_149", title: "Oxygen Destroyer"},
+  {id: "bgm_150", title: "P.A.J.A.M.A Sleep Over"},
+  {id: "bgm_151", title: "PACHAD"},
+  {id: "bgm_152", title: "Paint It Now"},
+  {id: "bgm_153", title: "Party time"},
+  {id: "bgm_154", title: "Pixel Time"},
+  {id: "bgm_155", title: "Play Ball!"},
+  {id: "bgm_156", title: "Plug and Play"},
+  {id: "bgm_157", title: "Polyphonic"},
+  {id: "bgm_158", title: "Poppin' Memories"},
+  {id: "bgm_159", title: "Prophets"},
+  {id: "bgm_160", title: "PRST Academy"},
+  {id: "bgm_161", title: "PRST Marching"},
+  {id: "bgm_162", title: "Raise the Huddle"},
+  {id: "bgm_163", title: "Ramune Lagoon"},
+  {id: "bgm_164", title: "RE Aoharu"},
+  {id: "bgm_165", title: "Realm Rumble"},
+  {id: "bgm_166", title: "Rendezvous"},
+  {id: "bgm_167", title: "Rendezvous Recorder ver"},
+  {id: "bgm_168", title: "Responsibility"},
+  {id: "bgm_169", title: "Ridiculous"},
+  {id: "bgm_170", title: "Rolling beat"},
+  {id: "bgm_171", title: "Romantic Seaside"},
+  {id: "bgm_172", title: "Romantic Smile"},
+  {id: "bgm_173", title: "SAKURA PUNCH"},
+  {id: "bgm_174", title: "SAKURA PUNCH Hard Arrange"},
+  {id: "bgm_175", title: "Scarlet Chrysanthemum"},
+  {id: "bgm_176", title: "Serene Scenario"},
+  {id: "bgm_177", title: "Shady Girls"},
+  {id: "bgm_178", title: "SHANHAIJING Tragicomedy"},
+  {id: "bgm_179", title: "Shining Seaside"},
+  {id: "bgm_180", title: "Shooting Athletes"},
+  {id: "bgm_181", title: "Shooting Stars"},
+  {id: "bgm_182", title: "Shoujo Delight"},
+  {id: "bgm_183", title: "Shoujo Sorrow"},
+  {id: "bgm_184", title: "Signal of Abydos"},
+  {id: "bgm_185", title: "Snow Pantomime"},
+  {id: "bgm_186", title: "someday, sometime"},
+  {id: "bgm_187", title: "Starry Confession"},
+  {id: "bgm_188", title: "Starting Pistol"},
+  {id: "bgm_189", title: "Step by Step"},
+  {id: "bgm_190", title: "Step of Terror"},
+  {id: "bgm_191", title: "Sudden Onset Disaster"},
+  {id: "bgm_192", title: "Sugar story"},
+  {id: "bgm_193", title: "Sugary Holiday"},
+  {id: "bgm_194", title: "Summer Attack!"},
+  {id: "bgm_195", title: "Summer Bounce"},
+  {id: "bgm_196", title: "Summer Bounce Hard Arrange"},
+  {id: "bgm_197", title: "Summertime Archive"},
+  {id: "bgm_198", title: "Sweet Allegro"},
+  {id: "bgm_199", title: "System All Green"},
+  {id: "bgm_200", title: "Takaramonogatari"},
+  {id: "bgm_201", title: "Tasty New Year"},
+  {id: "bgm_202", title: "Tech N Tech"},
+  {id: "bgm_203", title: "Tech N Tech Hard Arrange"},
+  {id: "bgm_204", title: "The Dragon Express"},
+  {id: "bgm_205", title: "The Eruption"},
+  {id: "bgm_206", title: "Tok9 Train"},
+  {id: "bgm_207", title: "TOMODACHI Summer"},
+  {id: "bgm_208", title: "Train Showdown"},
+  {id: "bgm_209", title: "Tremendous Celebration"},
+  {id: "bgm_210", title: "Trigger For Ambition"},
+  {id: "bgm_211", title: "Tsukikage"},
+  {id: "bgm_212", title: "U mak3 m3 smil3"},
+  {id: "bgm_213", title: "U-n.I"},
+  {id: "bgm_214", title: "Undefined Behavior"},
+  {id: "bgm_215", title: "Underwater Jungle"},
+  {id: "bgm_216", title: "Unwelcome Guest"},
+  {id: "bgm_217", title: "Unwelcome School"},
+  {id: "bgm_218", title: "Up to 21°C"},
+  {id: "bgm_219", title: "Usagi Flap"},
+  {id: "bgm_220", title: "Utaha No Uta"},
+  {id: "bgm_221", title: "Vibes"},
+  {id: "bgm_222", title: "Victory Sky"},
+  {id: "bgm_223", title: "Virtual Storm"},
+  {id: "bgm_224", title: "Virtual Storm Hard Arrange"},
+  {id: "bgm_225", title: "Vivid Night"},
+  {id: "bgm_226", title: "Walking Night"},
+  {id: "bgm_227", title: "Walkthrough"},
+  {id: "bgm_228", title: "Water Drop"},
+  {id: "bgm_229", title: "Wave & Conquer"},
+  {id: "bgm_230", title: "Welcome School"},
+  {id: "bgm_231", title: "WE'RE CCC"},
+  {id: "bgm_232", title: "You're My Princess"},
+  {id: "bgm_233", title: "Yumeji Party"},
+  {id: "bgm_234", title: "あゆみ"},
+  {id: "bgm_235", title: "ありがとう、そしてこれからも。"},
+  {id: "bgm_236", title: "イマハカラメル ―Sweeten Up Later"},
+  {id: "bgm_237", title: "うららか☆SYUGYOU"},
+  {id: "bgm_238", title: "エブリディいっしょ♪"},
+  {id: "bgm_239", title: "かがやきサマーデイズ"},
+  {id: "bgm_240", title: "キラメクMiLieへ"},
+  {id: "bgm_241", title: "これが私のハードボイルド!?"},
+  {id: "bgm_242", title: "コントロールできない感情という変数"},
+  {id: "bgm_243", title: "トモダチOneStep"},
+  {id: "bgm_244", title: "パトランプハーモニー！"},
+  {id: "bgm_245", title: "パフェダイアリーズ"},
+  {id: "bgm_246", title: "ぷかぷかぴ～す"},
+  {id: "bgm_247", title: "わたしたちのクエスト"},
+  {id: "bgm_248", title: "ワンダー・ファニー・ハーモニー"},
+  {id: "bgm_249", title: "一緒の約束"},
+  {id: "bgm_250", title: "一日一惡★レッツゴー！"},
+  {id: "bgm_251", title: "記憶と記録の間に"},
+  {id: "bgm_252", title: "月導"},
+  {id: "bgm_253", title: "好きなんです!"},
+  {id: "bgm_254", title: "彩りキャンバス"},
+  {id: "bgm_255", title: "主殿のお傍でニンニンニン"},
+  {id: "bgm_256", title: "手つなぎハッピーエンド"},
+  {id: "bgm_257", title: "純真レゾンデートル"},
+  {id: "bgm_258", title: "笑顔 はなまる HappyDay"},
+  {id: "bgm_259", title: "進み続ける兎たち"},
+  {id: "bgm_260", title: "澄んだ青空、萌ゆる心"},
+  {id: "bgm_261", title: "全力絶対Come☆True"},
+  {id: "bgm_262", title: "憧れの日々"},
+  {id: "bgm_263", title: "忍術研究部!只今参上!の巻。"},
+  {id: "bgm_264", title: "美食追求の道 ～いただきます!～"},
+  {id: "bgm_265", title: "夢路の花"},
+  {id: "bgm_266", title: "夜明けのコーヒーの香り"},
+  {id: "bgm_267", title: "優しさの記憶"},
+  {id: "bgm_268", title: "勇者アリスの大冒険！"},
+  {id: "bgm_269", title: "夕映えの約束"},
+
+];
+
+const MAX_SELECT = 10;
+let selected = [];
+const bgmListEl = document.getElementById('bgmList');
+const selectedListEl = document.getElementById('selectedList');
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearSearchBtn');
+const screenshotBtn = document.getElementById('screenshotBtn');
+const rankingPanel = document.getElementById('rankingPanel');
+
+function renderAll(list = bgmListData) {
+  bgmListEl.innerHTML = '';
+  list.forEach(track => {
+    const el = document.createElement('div');
+    el.className = 'track';
+    el.innerHTML = `<div><strong>${escapeHtml(track.title)}</strong></div>
+                    <button class="addBtn">追加</button>`;
+    el.querySelector('.addBtn').addEventListener('click', () => addTrack(track));
+    bgmListEl.appendChild(el);
+  });
+}
+
+function renderSelected() {
+  selectedListEl.innerHTML = '';
+  selected.forEach((track, idx) => {
+    const item = document.createElement('div');
+    item.className = 'selectedItem';
+    item.draggable = true;
+    item.dataset.id = track.id;
+    item.innerHTML = `<div class="rankLabel">${idx+1}位</div>
+                      <div style="flex:1"><strong>${escapeHtml(track.title)}</strong></div>
+                      <div><button class="removeBtn">削除</button></div>`;
+    item.querySelector('.removeBtn').addEventListener('click', () => removeTrack(track.id));
+    item.addEventListener('dragstart', onDragStart);
+    item.addEventListener('dragover', onDragOver);
+    item.addEventListener('drop', onDrop);
+    item.addEventListener('dragend', onDragEnd);
+    selectedListEl.appendChild(item);
+  });
+}
+
+function addTrack(track) {
+  if (selected.find(t => t.id === track.id)) return alert('選択済の曲です');
+  if (selected.length >= MAX_SELECT) return alert(`${MAX_SELECT} 曲選択済です`);
+  selected.push(track); renderSelected();
+}
+
+function removeTrack(id) {
+  selected = selected.filter(t=>t.id!==id);
+  renderSelected();
+}
+
+let dragSrcId = null;
+function onDragStart(e){ dragSrcId=this.dataset.id; this.style.opacity='0.4'; }
+function onDragOver(e){ e.preventDefault(); }
+function onDrop(e){
+  e.preventDefault();
+  const targetId = this.dataset.id;
+  if (!dragSrcId || dragSrcId===targetId) return;
+  const srcIndex = selected.findIndex(t=>t.id===dragSrcId);
+  const tgtIndex = selected.findIndex(t=>t.id===targetId);
+  const [moved] = selected.splice(srcIndex,1);
+  selected.splice(tgtIndex,0,moved);
+  renderSelected();
+}
+function onDragEnd(){ this.style.opacity=''; dragSrcId=null; }
+
+searchInput.addEventListener('input', () => {
+  const keyword = searchInput.value.toLowerCase();
+  const filtered = bgmListData.filter(track => track.title.toLowerCase().includes(keyword));
+  renderAll(filtered);
+});
+
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  renderAll();
+});
+
+screenshotBtn.addEventListener('click', () => {
+  // 削除ボタン & スクショボタンを一時的に非表示
+  document.querySelectorAll(".removeBtn").forEach(btn => btn.style.display = "none");
+  screenshotBtn.style.display = "none";
+
+  html2canvas(rankingPanel, {backgroundColor:'#fff'}).then(canvas => {
+    const link = document.createElement('a');
+    link.download = 'ranking_screenshot.png';
+    link.href = canvas.toDataURL();
+    link.click();
+
+  // 元に戻す
+  document.querySelectorAll(".removeBtn").forEach(btn => btn.style.display = "inline-block");
+  screenshotBtn.style.display = "inline-block";
+
+  });
+});
+
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+renderAll();
+renderSelected();
+</script>
+</body>
+</html>
